@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="home-header">
+        <h1>Latest Articles</h1>
+        <div class="action-buttons">
+            <a href="{{ url_for('write') }}" class="btn btn-primary">✍ Write</a>
+            <a href="{{ url_for('generate') }}" class="btn btn-success">⚡ Generate</a>
+        </div>
+    </div>
+
+    <div class="articles-container">
+        {% if articles %}
+            {% for article in articles %}
+                <div class="article-card">
+                    <div class="article-header">
+                        <h2><a href="{{ url_for('view_article', article_id=article.id) }}">{{ article.title }}</a></h2>
+                        <div class="article-meta">
+                            <span class="author">By {{ article.author.username }}</span>
+                            <span class="timestamp">{{ article.timestamp.strftime('%B %d, %Y') }}</span>
+                            {% if article.generated %}
+                                <span class="generated-badge">AI Generated</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="article-preview">
+                        {{ article.content[:200] }}{% if article.content|length > 200 %}...{% endif %}
+                    </div>
+                    <div class="article-footer">
+                        {% if article.tags %}
+                            <div class="tags">
+                                {% for tag in article.tags.split(',') %}
+                                    <span class="tag">{{ tag.strip() }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <a href="{{ url_for('view_article', article_id=article.id) }}" class="read-more">Read more</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-articles">
+                <p>No articles yet. Be the first to <a href="{{ url_for('write') }}">write</a> or <a href="{{ url_for('generate') }}">generate</a> one!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

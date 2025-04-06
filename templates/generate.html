@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block title %}Generate Article{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="generate-container">
+        <h1>Generate AI Article</h1>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="ai-info">
+            <p>Enter a title, and our AI will generate a complete article for you. The generated article will be added to your profile.</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('generate') }}" class="generate-form">
+            <div class="form-group">
+                <label for="title">Article Title</label>
+                <input type="text" id="title" name="title" required class="form-control" 
+                       placeholder="Enter a descriptive title for your article">
+            </div>
+            
+            <div class="generate-actions">
+                <button type="submit" class="btn btn-success btn-block">
+                    <span class="lightning">⚡</span> Generate Article
+                </button>
+            </div>
+        </form>
+        
+        <div class="generate-loading hidden">
+            <div class="spinner"></div>
+            <p>Generating your article... This may take a few moments.</p>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.querySelector('.generate-form').addEventListener('submit', function() {
+        document.querySelector('.generate-form').classList.add('hidden');
+        document.querySelector('.generate-loading').classList.remove('hidden');
+    });
+</script>
+{% endblock %}
+{% endblock %}

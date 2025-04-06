@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ article.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="article-container">
+        <article class="main-article">
+            <div class="article-header">
+                <h1>{{ article.title }}</h1>
+                <div class="article-meta">
+                    <span class="author">By <a href="#">{{ article.author.username }}</a></span>
+                    <span class="timestamp">{{ article.timestamp.strftime('%B %d, %Y') }}</span>
+                    {% if article.generated %}
+                        <span class="generated-badge">AI Generated</span>
+                    {% endif %}
+                </div>
+                {% if article.tags %}
+                    <div class="tags">
+                        {% for tag in article.tags.split(',') %}
+                            <span class="tag">{{ tag.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="article-content">
+                {{ article.content|safe }}
+            </div>
+            
+            <div class="article-actions">
+                <div class="engagement">
+                    <span class="views-count">{{ article.views|length }} views</span>
+                    <button class="like-button" data-article-id="{{ article.id }}">
+                        <span class="like-icon">❤️</span>
+                        <span class="like-count">{{ article.likes|length }}</span>
+                    </button>
+                </div>
+                <div class="share">
+                    <button class="share-button">Share</button>
+                    <div class="share-dropdown">
+                        <a href="#" class="twitter-share">Twitter</a>
+                        <a href="#" class="facebook-share">Facebook</a>
+                        <a href="#" class="linkedin-share">LinkedIn</a>
+                        <a href="#" class="copy-link">Copy Link</a>
+                    </div>
+                </div>
+            </div>
+        </article>
+        
+        <aside class="recommendations">
+            <h3>Recommended Articles</h3>
+            <div class="recommended-articles">
+                <!-- This will be populated from the backend with similar articles -->
+                <p class="recommendation-placeholder">Loading recommendations...</p>
+            </div>
+        </aside>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Record article view
+    document.addEventListener('DOMContentLoaded', function() {
+        // Record view - this would typically be an AJAX call to your backend
+        console.log('Recording view for article ID: {{ article.id }}');
+        
+        // Toggle like button
+        const likeButton = document.querySelector('.like-button');
+        if (likeButton) {
+            likeButton.addEventListener('click', function() {
+                // This would typically be an AJAX call to your backend
+                const likeCount = this.querySelector('.like-count');
+                const currentLikes = parseInt(likeCount.textContent);
+                likeCount.textContent = currentLikes + 1;
+                
+                // Visual feedback
+                this.classList.add('liked');
+                setTimeout(() => this.classList.remove('liked'), 500);
+            });
+        }
+        
+        // Share functionality
+        const shareButton = document.querySelector('.share-button');
+        const shareDropdown = document.querySelector('.share-dropdown');
+        
+        if (shareButton && shareDropdown) {
+            shareButton.addEventListener('click', function() {
+                shareDropdown.classList.toggle('active');
+            });
+            
+            // Hide dropdown when clicking elsewhere
+            document.addEventListener('click', function(event) {
+                if (!shareButton.contains(event.target) && !shareDropdown.contains(event.target)) {
+                    shareDropdown.classList.remove('active');
+                }
+            });
+            
+            // Copy link functionality
+            const copyLink = document.querySelector('.copy-link');
+            if (copyLink) {
+                copyLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = window.location.href;
+                    navigator.clipboard.writeText(url).then(function() {
+                        const originalText = copyLink.textContent;
+                        copyLink.textContent = 'Copied!';
+                        setTimeout(() => copyLink.textContent = originalText, 2000);
+                    });
+                });
+            }
+        }
+        
+        // Simulate loading recommendations
+        setTimeout(function() {
+            const recommendationPlaceholder = document.querySelector('.recommendation-placeholder');
+            if (recommendationPlaceholder) {
+                recommendationPlaceholder.innerHTML = `
+                    <div class="recommended-article">
+                        <h4><a href="#">Related Article 1</a></h4>
+                        <p>This would be populated from your backend recommendation engine.</p>
+                    </div>
+                    <div class="recommended-article">
+                        <h4><a href="#">Related Article 2</a></h4>
+                        <p>Another recommendation based on the current article.</p>
+                    </div>
+                    <div class="recommended-article">
+                        <h4><a href="#">Related Article 3</a></h4>
+                        <p>Third recommendation for further reading.</p>
+                    </div>
+                `;
+            }
+        }, 1000);
+    });
+</script>
+{% endblock %}
+{% endblock %}

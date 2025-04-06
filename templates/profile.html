@@ -1,0 +1,182 @@
+{% extends "layout.html" %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1>{{ user.username }}'s Profile</h1>
+            <div class="profile-meta">
+                <p>Member since: {{ user.created_at.strftime('%B %d, %Y') }}</p>
+                <p>Email: {{ user.email }}</p>
+            </div>
+        </div>
+        
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-number">{{ count }}</div>
+                <div class="stat-label">Articles Published</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ articles|selectattr('generated', 'equalto', True)|list|length }}</div>
+                <div class="stat-label">AI-Generated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ articles|sum(attribute='views') }}</div>
+                <div class="stat-label">Total Views</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ articles|sum(attribute='likes') }}</div>
+                <div class="stat-label">Total Likes</div>
+            </div>
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3>Content Type Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="contentTypeChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Monthly Activity</h3>
+                <div class="chart-container">
+                    <canvas id="monthlyActivityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="articles-section">
+            <h2>Your Articles</h2>
+            
+            {% if articles %}
+                <div class="articles-table-container">
+                    <table class="articles-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Date</th>
+                                <th>Views</th>
+                                <th>Likes</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for article in articles %}
+                                <tr>
+                                    <td><a href="{{ url_for('view_article', article_id=article.id) }}">{{ article.title }}</a></td>
+                                    <td>{{ article.timestamp.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ article.views }}</td>
+                                    <td>{{ article.likes }}</td>
+                                    <td>{% if article.generated %}AI Generated{% else %}Written{% endif %}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="no-articles">
+                    <p>You haven't published any articles yet.</p>
+                    <div class="cta-buttons">
+                        <a href="{{ url_for('write') }}" class="btn btn-primary">✍ Write an Article</a>
+                        <a href="{{ url_for('generate') }}" class="btn btn-success">⚡ Generate an Article</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // IIFE to prevent scope pollution
+    (function() {
+        // Safe JSON serialization
+        const userArticles = {{ articles|tojson|safe }};
+        
+        // Content Type Chart
+        const generatedCount = userArticles.filter(a => a.generated).length;
+        const writtenCount = userArticles.length - generatedCount;
+        
+        const ctxType = document.getElementById('contentTypeChart').getContext('2d');
+        new Chart(ctxType, {
+            type: 'pie',
+            data: {
+                labels: ['Written', 'AI Generated'],
+                datasets: [{
+                    data: [writtenCount, generatedCount],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(75, 192, 192, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+        
+        // Monthly Activity Chart
+        const monthlyData = {};
+        userArticles.forEach(article => {
+            const date = new Date(article.timestamp);
+            const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
+            
+            if (!monthlyData[monthYear]) {
+                monthlyData[monthYear] = 0;
+            }
+            monthlyData[monthYear]++;
+        });
+        
+        const labels = Object.keys(monthlyData).sort((a, b) => {
+            const [aMonth, aYear] = a.split('/');
+            const [bMonth, bYear] = b.split('/');
+            return new Date(aYear, aMonth - 1) - new Date(bYear, bMonth - 1);
+        });
+        const data = labels.map(label => monthlyData[label]);
+        
+        const ctxActivity = document.getElementById('monthlyActivityChart').getContext('2d');
+        new Chart(ctxActivity, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Articles Published',
+                    data: data,
+                    backgroundColor: 'rgba(153, 102, 255, 0.7)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    })();
+</script>
+{% endblock %}
+{% endblock %}
