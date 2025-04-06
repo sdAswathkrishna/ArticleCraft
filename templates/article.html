@@ -51,8 +51,16 @@
         <aside class="recommendations">
             <h3>Recommended Articles</h3>
             <div class="recommended-articles">
-                <!-- This will be populated from the backend with similar articles -->
-                <p class="recommendation-placeholder">Loading recommendations...</p>
+                {% if recommendations %}
+                    {% for rec in recommendations %}
+                        <div class="recommended-article">
+                            <h4><a href="{{ url_for('view_article', article_id=rec.id) }}">{{ rec.title }}</a></h4>
+                            <p>{{ rec.content[:150] }}...</p>  <!-- Truncated preview -->
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No recommendations available.</p>
+                {% endif %}
             </div>
         </aside>
     </div>

@@ -4,6 +4,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Article
 from datetime import datetime
 from urllib.parse import quote_plus
+from recommendation_module import recommend_articles_nn
+from nextword_module import generate_next_words, load_model_and_tokenizer
+from generate_article_with_groq import ArticleGenerator
+import jsonify
+
+# Initialize Article Generator
+generator = ArticleGenerator()
+generator.setup_vector_database("final_nlp_data.csv", sample_size=1000)
+
+model, tokenizer = load_model_and_tokenizer()
+max_seq_len = 30  # Set this based on training time
+
 password = quote_plus('aswath@22')
 
 app = Flask(__name__)
@@ -70,6 +82,30 @@ def logout():
     flash('Logged out successfully')
     return redirect(url_for('login'))
 
+@app.route('/predict', methods=['GET', 'POST'])
+def predict():
+    if request.method == 'POST':
+        seed_text = request.form['seed_text']
+        predictions = generate_next_words(
+            seed_text, 
+            next_words=10, 
+            model=model, 
+            tokenizer=tokenizer, 
+            max_seq_len=max_seq_len
+        )
+        
+        # Return the predictions as JSON
+        return jsonify({
+            'success': True,
+            'predictions': predictions
+        })
+    
+    # Handle GET request or return error for POST without seed_text
+    return jsonify({
+        'success': False,
+        'error': 'Please provide seed text'
+    })
+
 
 @app.route('/write', methods=['GET', 'POST'])
 def write():
@@ -107,7 +143,7 @@ def generate():
         title = request.form['title']
 
         # Placeholder: Call your AI text generation pipeline here
-        generated_content = f"This is a dummy article for the title: {title}"
+        generated_content = generator.generate_article(title, num_similar_articles=3)
 
         new_article = Article(
             title=title,
@@ -142,9 +178,9 @@ def view_article(article_id):
     article = Article.query.get_or_404(article_id)
 
     # TODO: Add recommendation logic here based on the current article
-    # recommendations = get_recommendations(article.title)
+    recommendations = recommend_articles_nn(article.title)
 
-    return render_template('article.html', article=article)  # , recommendations=recommendations
+    return render_template('article.html', article=article, recommendations=recommendations)
 
 
 # ---------- MAIN ---------- #

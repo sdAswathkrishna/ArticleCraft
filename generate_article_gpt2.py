@@ -148,7 +148,7 @@ if __name__ == "__main__":
     user_title = "The Impact of Artificial Intelligence on Modern Healthcare"
     generated_article = generator.generate_article(
         user_title, 
-        max_length=500, 
+        max_length=1000, 
         use_similar_article_context=True
     )
     

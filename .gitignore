@@ -1,4 +1,5 @@
 # Python environment
+.env
 .venv/
 venv/
 ENV/
@@ -10,7 +11,10 @@ final_nlp_data.pkl
 ai-powered-article-analysis-and-recommendation_phase1.ipynb
 analysis_results.pkl
 medium_articles.csv
-
+article_nextword.ipynb
+representative_samples/
+Hackathon Documents/
+models/
 # Byte-compiled files
 __pycache__/
 *.py[cod]
