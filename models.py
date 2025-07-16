@@ -1,55 +1,81 @@
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
+import os
 
-db = SQLAlchemy()
+# Database configuration
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./articlecraft.db")
 
-# User Table
-class User(db.Model):
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, 
+    connect_args={"check_same_thread": False} if "sqlite" in SQLALCHEMY_DATABASE_URL else {}
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+# Database dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# User Model
+class User(Base):
     __tablename__ = 'users'
     
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)
-    email = db.Column(db.String(100), unique=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    password_hash = Column(String(200), nullable=False)
+    email = Column(String(100), unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    articles = db.relationship('Article', backref='author', lazy=True)
-    views = db.relationship('View', backref='viewer', lazy=True)
-    likes = db.relationship('Like', backref='liker', lazy=True)
+    # Relationships
+    articles = relationship("Article", back_populates="author")
+    views = relationship("View", back_populates="viewer")
+    likes = relationship("Like", back_populates="liker")
 
-
-# Article Table
-class Article(db.Model):
+# Article Model
+class Article(Base):
     __tablename__ = 'articles'
     
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(300), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    tags = db.Column(db.Text)
-    generated = db.Column(db.Boolean, default=False)
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(300), nullable=False)
+    content = Column(Text, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    tags = Column(Text)
+    generated = Column(Boolean, default=False)
+    author_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    # Relationships
+    author = relationship("User", back_populates="articles")
+    views = relationship("View", back_populates="article")
+    likes = relationship("Like", back_populates="article")
 
-    views = db.relationship('View', backref='article', lazy=True)
-    likes = db.relationship('Like', backref='article', lazy=True)
-
-
-# View Table – to track engagement
-class View(db.Model):
+# View Model
+class View(Base):
     __tablename__ = 'views'
     
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)  # Allow anonymous views
+    article_id = Column(Integer, ForeignKey('articles.id'), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
+    viewer = relationship("User", back_populates="views")
+    article = relationship("Article", back_populates="views")
 
-# Like Table – for engagement and feedback
-class Like(db.Model):
+# Like Model
+class Like(Base):
     __tablename__ = 'likes'
     
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    article_id = Column(Integer, ForeignKey('articles.id'), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    liker = relationship("User", back_populates="likes")
+    article = relationship("Article", back_populates="likes")
