@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Read Article - AI Article Platform</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-brand-group">
+          <a href="index.html" class="nav-brand">AI Articles</a>
+          <form id="search-form" class="search-form">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search articles..."
+            />
+          </form>
+        </div>
+
+        <ul class="nav-links" id="nav-links"></ul>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="container">
+        <!-- Placeholder for article loading status -->
+        <div id="loading-message"></div>
+
+        <!-- Article content section -->
+        <article id="article-content" class="article-content">
+          <header class="article-header">
+            <h1 id="article-title"></h1>
+            <div id="article-author" class="article-author"></div>
+          </header>
+
+          <div id="article-body" class="article-body"></div>
+
+          <div class="article-actions">
+            <button id="like-btn" class="action-btn">Like🩷</button>
+            <div id="like-message"></div>
+          </div>
+        </article>
+
+        <!-- Recommended articles section -->
+        <section id="recommended-section" class="recommended-section">
+          <h2>Recommended Articles</h2>
+          <div id="recommended-list" class="recommended-list">
+            <!-- Recommended articles will be populated here by JavaScript -->
+          </div>
+        </section>
+
+        <!-- Placeholder for error messages -->
+        <div id="error-message"></div>
+      </div>
+    </main>
+
+    <script src="main.js"></script>
+  </body>
+</html>

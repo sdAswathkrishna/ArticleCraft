@@ -27,7 +27,7 @@ def generate_next_words(seed_text, model, tokenizer, max_seq_len, num_words=10):
     return seed_text
 
 # Example usage
-print(generate_next_words("Artificial intelligence is", model, tokenizer, max_seq_len))
+# print(generate_next_words("Artificial intelligence is", model, tokenizer, max_seq_len))
 
 
 

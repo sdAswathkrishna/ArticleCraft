@@ -5,6 +5,8 @@ venv/
 ENV/
 env/
 
+arti_venv/
+
 intermediate_data/
 final_nlp_data.csv
 final_nlp_data.pkl

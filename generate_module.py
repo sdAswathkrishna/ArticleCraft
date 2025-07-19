@@ -8,8 +8,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import create_retrieval_chain
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_core.documents import Document
+# from sentence_transformers import SentenceTransformer
+# from langchain_core.documents import Document
 from dotenv import load_dotenv
+import warnings
+warnings.filterwarnings("ignore")
 
 class ArticleGenerator:
     def __init__(self, groq_api_key=None, model_name="Llama3-8b-8192", vector_store_path="vector_db"):
@@ -46,7 +49,11 @@ class ArticleGenerator:
     def load_vector_database(self):
         if not os.path.exists(self.vector_store_path):
             raise FileNotFoundError("Vector store not found. Run setup first.")
-        self.vector_store = FAISS.load_local(self.vector_store_path, self.embeddings)  # Load FAISS vector store from disk
+        self.vector_store = FAISS.load_local(
+            self.vector_store_path,
+            self.embeddings,
+            allow_dangerous_deserialization=True  # ✅ Enable with caution
+        )  # Load FAISS vector store from disk
         print("Vector DB loaded from disk.")
 
     def generate_article(self, title, num_similar_articles=3):
@@ -60,6 +67,8 @@ class ArticleGenerator:
         response = chain.invoke({"input": title})  # Generate article using LLM and similar articles
         duration = time.time() - start  # Calculate generation time
 
+        # print(response)
+
         return {
             "title": title,
             "article": response["answer"],
@@ -68,4 +77,5 @@ class ArticleGenerator:
 
 
 generator = ArticleGenerator()  # Instantiate the article generator
-generator.generate_article("AI in HealthCare", num_similar_articles=3)  # Generate article based on title
+# generator.load_vector_database()  # Load the vector database
+# generator.generate_article("AI in HealthCare", num_similar_articles=3)  # Generate article based on title

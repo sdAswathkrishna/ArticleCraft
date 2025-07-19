@@ -1,6 +1,10 @@
-from app import app, db
-import models  # This imports the models so they are registered
+# create_db.py
 
-with app.app_context():
-    db.create_all()
-    print("✅ Tables created successfully!")
+from database import engine
+from models import Base
+
+# Create all tables
+Base.metadata.create_all(bind=engine)
+print("✅ All tables created in MySQL database.")
+
+

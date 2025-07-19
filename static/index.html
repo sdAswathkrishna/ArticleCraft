@@ -1,0 +1,38 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Article Platform</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-brand-group">
+          <a href="index.html" class="nav-brand">AI Articles</a>
+          <form id="search-form" class="search-form">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search articles..."
+            />
+          </form>
+        </div>
+
+        <ul class="nav-links" id="nav-links"></ul>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="container">
+        <!-- <h1>Latest Articles</h1> -->
+        <!-- Articles will be populated here by JavaScript fetch() call -->
+        <div id="article-list"></div>
+      </div>
+    </main>
+
+    <script src="main.js"></script>
+  </body>
+</html>

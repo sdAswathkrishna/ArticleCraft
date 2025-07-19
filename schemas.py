@@ -1,110 +1,70 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import List, Optional
 from datetime import datetime
 
-# ==================== USER SCHEMAS ====================
 
-class UserBase(BaseModel):
+# User
+class UserCreate(BaseModel):
     username: str
     email: EmailStr
-
-class UserCreate(UserBase):
     password: str
 
 class UserLogin(BaseModel):
-    username: str
+    email: EmailStr
     password: str
 
-class UserResponse(UserBase):
+class UserResponse(BaseModel):
     id: int
-    created_at: datetime
-    
+    username: str
+    email: EmailStr
+
     class Config:
-        from_attributes = True
+        orm_mode = True
 
-# ==================== ARTICLE SCHEMAS ====================
 
+# Article
 class ArticleBase(BaseModel):
     title: str
     content: str
-    tags: Optional[str] = None
 
 class ArticleCreate(ArticleBase):
-    generated: bool = False
+    pass
 
 class ArticleResponse(ArticleBase):
     id: int
-    generated: bool
-    timestamp: datetime
+    created_at: datetime
+    updated_at: Optional[datetime]
     author_id: int
-    author: Optional[UserResponse] = None
-    
+
     class Config:
-        from_attributes = True
+        orm_mode = True
 
-class ArticleWithStats(ArticleResponse):
-    views_count: int = 0
-    likes_count: int = 0
 
-# ==================== AUTH SCHEMAS ====================
+# Like
+class LikeResponse(BaseModel):
+    user_id: int
+    article_id: int
+    created_at: datetime
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+    class Config:
+        orm_mode = True
 
-class TokenData(BaseModel):
-    username: Optional[str] = None
-
-# ==================== AI FEATURE SCHEMAS ====================
-
-class GenerateRequest(BaseModel):
+class GeneratedArticle(BaseModel):
     title: str
-
-class GenerateResponse(BaseModel):
     content: str
+    author_id: int
 
-class ArticleGenerateRequest(BaseModel):
+
+# ML module request schemas
+
+class ArticleRequest(BaseModel):
     title: str
-    num_similar_articles: int = 3
-
-class PredictRequest(BaseModel):
-    seed_text: str
-
-class PredictResponse(BaseModel):
-    predictions: List[str]
+    num_similar_articles: Optional[int] = 3
 
 class NextWordRequest(BaseModel):
     seed_text: str
-    next_words: int = 5
-    temperature: float = 1.0
+    num_words: Optional[int] = 10
 
-class RecommendationRequest(BaseModel):
+class RecommendRequest(BaseModel):
     query: str
-    top_k: int = 5
-
-# ==================== ENGAGEMENT SCHEMAS ====================
-
-class ViewResponse(BaseModel):
-    id: int
-    user_id: Optional[int]
-    article_id: int
-    timestamp: datetime
-    
-    class Config:
-        from_attributes = True
-
-class LikeResponse(BaseModel):
-    id: int
-    user_id: int
-    article_id: int
-    timestamp: datetime
-    
-    class Config:
-        from_attributes = True
-
-# ==================== RECOMMENDATION SCHEMAS ====================
-
-class RecommendationResponse(BaseModel):
-    id: int
-    title: str
-    content: str
+    top_k: Optional[int] = 5
