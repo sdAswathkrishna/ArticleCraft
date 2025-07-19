@@ -15,6 +15,8 @@ from database import get_db
 import hashlib
 import random
 
+from fastapi.responses import RedirectResponse
+
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -133,11 +135,28 @@ def like_article(article_id: int, user_id: int = Body(...), db: Session = Depend
     db.refresh(new_like)
     return new_like
 
-
-@app.get("/users/{user_id}/articles", response_model=List[ArticleResponse])
+@app.get("/users/{user_id}/articles")
 def get_user_articles(user_id: int, db: Session = Depends(get_db)):
-    articles = db.query(Article).filter(Article.author_id == user_id).order_by(Article.created_at.desc()).all()
-    return articles
+    articles = (
+        db.query(Article, User.username)
+        .join(User, Article.author_id == User.id)
+        .filter(Article.author_id == user_id)
+        .order_by(Article.created_at.desc())
+        .all()
+    )
+
+    if not articles:
+        raise HTTPException(status_code=404, detail="No articles found for this user")
+
+    return [
+        {
+            "id": a.id,
+            "title": a.title,
+            "content": a.content,
+            "author_name": username
+        }
+        for a, username in articles
+    ]
 
 
 @app.post("/articles/generate", response_model=GeneratedArticle)
@@ -174,3 +193,8 @@ def recommend(request: RecommendRequest):
         return {"query": request.query, "recommendations": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/static/index.html")

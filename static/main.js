@@ -501,7 +501,18 @@ function initProfilePage() {
     } else {
         showMessage('error-message', 'No user ID provided', true);
     }
+
+    // Handle logout
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('user_id');
+            localStorage.removeItem('is_logged_in');
+            window.location.href = 'index.html';
+        });
+    }
 }
+
 
 async function loadUserArticles(userId) {
     const userArticles = document.getElementById('user-articles');
